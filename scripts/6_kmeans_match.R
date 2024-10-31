@@ -10,6 +10,7 @@ library(ggplot2)
 library(dplyr)
 library(compareGroups)
 library(rstudioapi)
+library(hopkins)
 setwd(dirname(getActiveDocumentContext()$path)) # Only with Rstudio
 
 ##-- Paths ---------------------------------------------------------------------
@@ -45,9 +46,12 @@ dd_w <- d %>% filter(Gender=='W') %>% select(all_of(var_clust)) %>% scale()# Wom
 ################################################################################
 # Clustering per match --> Men
 ################################################################################
+##-- Assess the suitability of the clustering analysis
+hopkins(dd_m)
+
 set.seed(12345)
 
-# Elbow men --> k=4
+# Elbow men players --> k=4
 k.max <- 10
 wss <- sapply(1:k.max,function(k){kmeans(dd_m, k, nstart=50, iter.max = 15 )$tot.withinss})
 png(filename = paste0(path_fig,'elbow_matches.png'),width = 720, height = 480)
