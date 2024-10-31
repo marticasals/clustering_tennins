@@ -1,7 +1,7 @@
 ################################################################################
-# Archetype per player
+# Archetype analysis for player external loads. Based on:
 # https://www.r-bloggers.com/2012/07/archetypal-analysis/
-# The R code is at the end of the page
+# [The R code is at the end of the webpage]
 ################################################################################
 
 rm(list=ls())
@@ -47,6 +47,9 @@ dd_w <- d %>% filter(Gender=='W') %>% select(all_of(var_clust)) %>% scale()# Wom
 ################################################################################
 # Archetypes per player --> Men
 ################################################################################
+##-- Assess the suitability of the clustering analysis
+hopkins(dd_m)
+
 ##-- Archetypes
 set.seed(12345)
 aa <- stepArchetypes(dd_m, k=1:10, nrep=5)
