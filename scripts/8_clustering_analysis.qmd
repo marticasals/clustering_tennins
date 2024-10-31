@@ -1,0 +1,343 @@
+---
+title: "Grand Slams 2017. Clustering Analysis"
+author: "Jordi Cortés"
+format: 
+  html:
+    toc: true
+embed-resources: true
+---
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+rm(list=ls())
+
+# knitr::opts_knit$set(echo=FALSE)
+
+##-- Load packages -------------------------------------------------------------
+library(data.table)
+library(ggplot2)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(gtsummary)
+library(compareGroups)
+library(archetypes)
+
+##-- Paths ---------------------------------------------------------------------
+path_des <- '../Data/disaggregated/'
+path_agr <- '../Data/raw_aggregated/'
+path_fin <- '../Data/final_data/'
+path_fig <- 'figures/'
+path_rep <- '../Data/Reports/'
+path_rda <- '../Data/Rdata/'
+
+file_namem <- paste0(path_fin,'d_match.txt')
+file_namep <- paste0(path_fin,'d_player.txt')
+dm <-  fread(file_namem, header = T, sep=" ") # file matches
+dp <-  fread(file_namep, header = T, sep=" ") # file players
+```
+
+## Executive summary
+
+This document shows the results of a clustering analysis applied to matches of the **four Grand Slam men's singles in year 2017**.
+
+There are two main clustering analysis:
+
+- Classifying **matches** according to their characteristics of workload and intensity 
+- Classifying **players** according to their characteristics of workload and intensity in the matches that they played
+
+## Descriptive of the sample
+
+### Matches
+
+The total collected number of matches was **`r sum(dm$Gender=='M')`** matches.
+
+```{r}
+#| echo: false
+dm2 <- dm |> filter(Gender=='M') |> select(surface, Slam)
+dm2 |> tbl_summary()
+```
+
+### Players
+
+The total number of collected male players participated in Grand Slams during 2017 was **`r sum(dp$Gender=='M')`**.
+
+### Variables
+
+The collected variables for each match were: 
+
+*`r paste(names(dm), collapse=', ')`*
+
+The collected variables for each player were: 
+
+*`r paste(names(dp), collapse=', ')`*
+
+
+```{r}
+#| echo: false
+
+# SELECT relevant variables
+
+##-- Matches ----------------------------------------------------------------
+##-- Variables for performing the clustering in matches
+var_clust_m <- c('played_minutes','Point','RallyCount','Dist', # Load variables
+               'rally_min','Dist_min')                       # Intensity  
+##-- Variables to compare between clusterings in matches
+var_int_m   <- c(var_clust_m,'Speed','surface',
+               'PercFirstServe','PercSecondServe','PercDoubleFault') # Intensity 
+# scaled clustering --> Matches
+dm_m <- dm %>% filter(Gender=='M') %>% select(all_of(var_clust_m)) %>% scale()# Men
+# Not scaled descriptive --> Matches
+dm_m0 <- dm %>% filter(Gender=='M') %>% select(all_of(var_int_m)) # Men
+
+##-- Players ----------------------------------------------------------------
+##-- Variables for performing the clustering in matches
+var_clust_p <- c('played_minutes','Point','RallyCount','Dist','rally_match','Dist_match', # Load variables
+                'rally_min','Dist_min')# Intensity  
+# var_clust_p <- c('played_minutes_match','Point_match','rally_match','Dist_match', # Load variables
+#                'rally_min','Dist_min')# Intensity  
+
+var_int_p   <- c(var_clust_p,'Speed',
+               'PercFirstServe','PercSecondServe','PercDoubleFault','Player') # Intensity 
+# scaled clustering --> Players
+dp_m <- dp %>% filter(Gender=='M') %>% select(all_of(var_clust_p)) %>% scale()# Men
+# Not scaled descriptive --> Players
+dp_m0 <- dp %>% filter(Gender=='M') %>% select(all_of(var_int_p)) # Men
+
+```
+
+
+## Clustering of matches
+
+### Methods
+
+K-means algorithm was used to perform this analysis.
+
+### Number of clusters
+
+We use the elbow rule to determine the number of clusters. There are **4** clusters.
+
+```{r echo=FALSE}
+
+#| echo: false
+
+################################################################################
+# Clustering per match --> Men
+################################################################################
+set.seed(12345)
+
+# Elbow men --> k=4
+k.max <- 10
+wss <- sapply(1:k.max,function(k){kmeans(dm_m, k, nstart=50, iter.max = 15 )$tot.withinss})
+plot(1:k.max, wss,type="b", pch = 19, frame = FALSE,xlab="Number of clusters K", ylab="Total within-clusters sum of squares")
+abline(v=4,lty=3)
+```
+
+
+### Cluster description
+
+Next table describe each of the clusters according to their characteristics.
+
+```{r}
+#| echo: false
+
+# Number of clusters=4
+km_m <- kmeans(dm_m, centers =  4, nstart=50, iter.max = 15)
+dm_m0$cluster <- km_m$cluster
+res <- compareGroups(cluster ~ ., data=dm_m0)
+createTable(res)
+```
+
+
+### Interpretation
+
+Long matches are measured with four variables: 
+
+- __*played_minutes*__. Number of effectively played minutes during the match (20% of the total time).    
+- __*Point*__. Number of points during the match. 
+- __*RallyCount*__. Number of shots (not rallies!) during the match.  
+- __*Dist*__. Average distance (meters) covered by the two players of the match.
+
+On the other hand, intensity is measured with two variables:
+
+- __*rally_min*__. Number of shots per minute.
+- __*Dist_min*__. Average distance (meters) covered by the two players of the match per minute.
+
+There are four types of matches:
+
+- **Cluster 1** $\rightarrow$ Short matches with low intensity. There is a high proportion of matches in **Grass** surface (41%, which is a 57% more than in the original sample). On the other hand, there is a low presence of **Hard** surface (44%, which is a 25% less than in the original sample)
+
+- **Cluster 2** $\rightarrow$ Short matches with high intensity. There is a high proportion of matches in **Clay** surface (22%, which is a 57% more than in the original sample). 
+
+- **Cluster 3** $\rightarrow$ Long matches with high intensity. There is a high proportion of matches in **Hard** surface (80%, which is a 36% more than in the original sample). On the other hand, there is a low presence of **Grass** surface (8%, which is a 69% less than in the original sample)
+
+
+- **Cluster 4** $\rightarrow$ Long matches with low intensity. There is a low presence of **Clay** surface (8%, which is a 43% less than in the original sample)
+
+
+There are no relevant differences regarding the percentages of first and second serves and double faults.
+
+
+## Clustering of players
+
+### Methods
+
+We performed an archetypal analysis to find the most representative players from each cluster analysis.
+
+### Number of clusters
+
+The screeplot say that there is 3 o 4 clusters.
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+##-- Archetypes
+set.seed(12345)
+aa <- stepArchetypes(dp_m, k=1:10, nrep=5,verbose = FALSE)
+screeplot(aa)
+```
+
+
+### Cluster description
+
+We decided to take 4 clusters. Next table describe each of the clusters according to their characteristics.
+
+```{r}
+#| echo: false
+#| warning: false
+
+
+##-- Four clusters -------------------------------------------------------
+aa_3 <- bestModel(aa[[3]]) 
+aa_4 <- bestModel(aa[[4]]) 
+
+##-- Assign to clusters --> Number of clusters=4
+dp_m0$cluster <- apply(coef(aa_4),1,which.max)
+res <- compareGroups(cluster ~ ., data=dp_m0)
+createTable(res)
+```
+
+
+### Characteristics 
+
+The standarized characteristics of each cluster are:
+
+```{r}
+#| echo: false
+
+aa_4$archetypes
+```
+
+### Interpretation
+
+```{r}
+#| echo: false
+
+# Most representatives
+pp_pos1 <- which.max(coef(aa_4)[,1]) # Prototipus cluster 1
+pp_pos2 <- which.max(coef(aa_4)[,2]) # Prototipus cluster 2
+pp_pos3 <- which.max(coef(aa_4)[,3]) # Prototipus cluster 3
+pp_pos4 <- which.max(coef(aa_4)[,4]) # Prototipus cluster 4
+```
+
+
+
+- **Cluster 1** $\rightarrow$ Not to much matches played with high intensity. The player most representative is **`r dp_m0$Player[pp_pos1]`**
+
+- **Cluster 2** $\rightarrow$ Not to much matches played with moderate intensity. The player most representative is **`r dp_m0$Player[pp_pos2]`**
+
+- **Cluster 3** $\rightarrow$ A lot of  matches played with moderate intensity. The player most representative is **`r dp_m0$Player[pp_pos3]`**
+
+- **Cluster 4** $\rightarrow$ Few matches played with low intensity. The player most representative is **`r dp_m0$Player[pp_pos4]`**
+
+
+## Appendix I: Clustering of matches
+
+```{r}
+#| echo: false
+
+dm_list <- dm %>% filter(Gender=='M') %>% select(all_of(c('match_id','player1','player2','Slam',var_clust_m))) 
+dm_list$cluster <- km_m$cluster
+```
+
+### Cluster 1
+
+```{r}
+#| echo: false
+dm_list_temp <- dm_list %>% filter(cluster==1)
+kable(dm_list_temp, digits=1) %>% kable_styling()
+```
+
+### Cluster 2
+
+```{r}
+#| echo: false
+dm_list_temp <- dm_list %>% filter(cluster==2)
+kable(dm_list_temp, digits=1) %>% kable_styling()
+```
+
+### Cluster 3
+
+```{r}
+#| echo: false
+dm_list_temp <- dm_list %>% filter(cluster==3)
+kable(dm_list_temp, digits=1) %>% kable_styling()
+```
+
+### Cluster 4
+
+```{r}
+#| echo: false
+dm_list_temp <- dm_list %>% filter(cluster==4)
+kable(dm_list_temp, digits=1) %>% kable_styling()
+```
+
+
+## Appendix II: Clustering of players
+
+
+```{r}
+#| echo: false
+
+dp_list <- dp %>% filter(Gender=='M') %>% select(all_of(c('Player',var_clust_p))) 
+dp_list$cluster <- dp_m0$cluster
+```
+
+### Cluster 1
+
+```{r}
+#| echo: false
+dm_list_temp <- dp_list %>% filter(cluster==1)
+kable(dm_list_temp, digits=1) %>% kable_styling()
+```
+
+### Cluster 2
+
+```{r}
+#| echo: false
+dm_list_temp <- dp_list %>% filter(cluster==2)
+kable(dm_list_temp, digits=1) %>% kable_styling()
+```
+
+### Cluster 3
+
+```{r}
+#| echo: false
+dm_list_temp <- dp_list %>% filter(cluster==3)
+kable(dm_list_temp, digits=1) %>% kable_styling()
+```
+
+### Cluster 4
+
+```{r}
+#| echo: false
+dm_list_temp <- dp_list %>% filter(cluster==4)
+kable(dm_list_temp, digits=1) %>% kable_styling()
+```
+
+

@@ -1,0 +1,163 @@
+---
+title: "EDA Clustering Tennis"
+author: "Jordi Cortés"
+format: 
+  html:
+    toc: true
+embed-resources: true
+---
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+rm(list=ls())
+
+# knitr::opts_knit$set(echo=FALSE)
+
+##-- Load packages -------------------------------------------------------------
+library(data.table)
+library(ggplot2)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+##-- Paths ---------------------------------------------------------------------
+path_des <- '../Data/disaggregated/'
+path_agr <- '../Data/raw_aggregated/'
+path_fin <- '../Data/final_data/'
+path_fig <- '../Data/Reports/figures/'
+path_rep <- '../Data/Reports/'
+path_rda <- '../Data/Rdata/'
+
+file_namem <- paste0(path_fin,'d_match.txt')
+file_namep <- paste0(path_fin,'d_player.txt')
+dm <-  fread(file_namem, header = T, sep=" ") # file matches
+dp <-  fread(file_namep, header = T, sep=" ") # file players
+```
+
+## Summary
+
+This document shows a preliminary Exploratory Data Analysis (EDA) regarding 
+to data from matches of the four Grand Slams in year 2017.
+
+Two main analysis:
+- Aggregating by match
+- Aggregating by player
+
+## EDA of matches
+
+### Sample size
+
+- Total number of **male** matches: **`r sum(dm$Gender=='M')`**
+- Total number of **female** matches: **`r sum(dm$Gender=='W')`**
+
+Table of matches by surface stratified by gender:
+
+```{r}
+#| echo: false
+t_surfm <- table(dm$surface,dm$Gender)
+kable(t_surfm)
+```
+Percentages:
+
+```{r}
+#| echo: false
+kable(100*prop.table(t_surfm,2),digits = 1)
+```
+
+
+Table of matches by Slam stratified by gender:
+
+```{r}
+#| echo: false
+t_slamm <- table(dm$Slam,dm$Gender)
+kable(t_slamm)
+```
+Percentages:
+
+```{r}
+#| echo: false
+kable(100*prop.table(t_slamm,2),digits = 1)
+```
+
+### Performance
+
+Performance by sex.
+
+```{r}
+with(dm,tapply(RallyCount,Gender,summary)) # Number of shots. Not Rallies!
+with(dm,tapply(Dist,Gender,summary))       # Mean Distance of both Players
+with(dm,tapply(Point,Gender,summary))      # Number of points
+with(dm,tapply(Speed,Gender,summary))      # Speed serve mean during all the match
+with(dm,tapply(PercFirstServe,Gender,summary)) # Percentage of 1st serve for both players
+with(dm,tapply(PercSecondServe,Gender,summary))# Percentage of 2nd serve for both players
+with(dm,tapply(PercDoubleFault,Gender,summary))# Percentage of double faults for both players
+with(dm,tapply(total_minutes,Gender,summary))   # Total minutes of the match
+with(dm,tapply(played_minutes,Gender,summary))  # Played minutes of the match (20% of the total minutes)
+with(dm,tapply(rally_min,Gender,summary))       # shots per minute
+with(dm,tapply(Dist_min,Gender,summary))        # Distance for any player per real (played) minute 
+```
+
+
+
+## EDA of players
+
+### Sample size
+
+- Total number of **male** players: **`r sum(dp$Gender=='M')`**
+- Total number of **female** players: **`r sum(dp$Gender=='W')`**
+
+Table of number of matches by player stratified by gender:
+
+```{r}
+#| echo: false
+t_num_m <- table(dp$n,dp$Gender)
+kable(t_num_m)
+```
+Percentages:
+
+```{r}
+#| echo: false
+kable(100*prop.table(t_num_m,2),digits = 1)
+```
+
+### Performance
+
+Performance by sex.
+
+```{r}
+# with(dp,tapply(RallyCount,Gender,summary))   # Number of shots in all matches. Not Rallies!
+# with(dp,tapply(PDist,Gender,summary))        # Distance Player in all matches
+# with(dp,tapply(Point,Gender,summary))        # Number of points in all matches
+with(dp,tapply(Speed,Gender,summary))          # Speed serve mean during all the match
+with(dp,tapply(PercFirstServe,Gender,summary)) # Percentage of 1st serve player
+with(dp,tapply(PercSecondServe,Gender,summary))# Percentage of 2nd serve player
+with(dp,tapply(PercDoubleFault,Gender,summary))# Percentage of double faults serve player
+with(dp,tapply(rally_min,Gender,summary))      # shots per minute
+with(dp,tapply(Dist_min,Gender,summary))       # player distance (meters) per minute
+with(dp,tapply(rally_match,Gender,summary))    # shots per match
+with(dp,tapply(Dist_match,Gender,summary))     # player distance (meters) per match
+```
+
+## Appendix
+
+### Aggregated data by match (only male)
+
+```{r}
+#| echo: false
+kable(dm[Gender=='M'],digits = 1) %>% kable_styling()
+```
+
+
+### Aggregated data by player (only male)
+
+**n**: number of matches
+
+```{r}
+#| echo: false
+dp_m <- dp[Gender=='M']
+kable(dp_m[order(dp_m$n, decreasing = TRUE),],digits = 1) %>% kable_styling()
+```
+

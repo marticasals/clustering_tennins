@@ -1,0 +1,5 @@
+"row_d" "col_d" "row_points" "col_points" "row_matches" "col_matches"
+"ausopen" 27659 74 27659 59 158 16
+"frenchopen" 44426 74 44426 59 254 16
+"usopen" 33159 74 33159 59 187 16
+"wimbledon" 47619 74 47619 59 253 16
