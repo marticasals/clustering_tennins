@@ -1,9 +1,3 @@
----
-editor_options: 
-  markdown: 
-    wrap: 72
----
-
 # Clustering Tennis Data
 
 [Repository](https://github.com/jordicortes40/clustering_tennins)
