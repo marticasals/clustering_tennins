@@ -1,6 +1,6 @@
 # Clustering Tennis Data
 
-[Repository](https://github.com/jordicortes40/clustering_tennins)
+[Repository](https://github.com/jordicortes40/clustering_tennins) 
 
 [Article (coming soon)](https://github.com/jordicortes40/clustering_tennins)
 
