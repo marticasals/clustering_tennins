@@ -6,12 +6,9 @@
 
 ## Clustering Tennis Data
 
-This repository contains a project focused on clustering tennis data to
-uncover patterns and insights within the sport.
+This repository contains a project focused on clustering tennis data to uncover patterns and insights within tennis.
 
 ## Project Overview
 
-The primary goal of this project is to apply various clustering
-algorithms to tennis-related datasets for describing external load patterns, aiming to identify meaningful
-groupings and trends.
+The primary goal of this project is to apply various clustering algorithms to tennis-related datasets for describing external load patterns, aiming to identify meaningfully groupings and trends.
 
